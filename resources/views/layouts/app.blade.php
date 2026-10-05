@@ -132,6 +132,10 @@
         });
     </script>
     <div class="who">
+        <button class="notif-bell" id="notifBell" type="button" title="New-mail alerts">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#5f6368"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5a6 6 0 0 0-5-5.91V4a1 1 0 0 0-2 0v1.09A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+            <span class="notif-badge" id="notifBadge" hidden></span>
+        </button>
         @if(auth()->user()?->isAdmin())
             <a class="who-profile" href="{{ route('password') }}" title="Change password">
                 <span>{{ auth()->user()->name }}</span>
@@ -223,6 +227,103 @@
         @yield('content')
     </main>
 </div>
+
+<div class="new-toast" id="newToast" hidden>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+    <span id="newToastText">New email received</span>
+    <a href="{{ route('inbox') }}" class="new-toast-btn">Open</a>
+</div>
+
+<script>
+(function () {
+    const PING = "{{ route('ping') }}";
+    let lastLatest = null;
+    let lastUnread = null;
+    let alertsOn = true;
+
+    const bell = document.getElementById('notifBell');
+    const badge = document.getElementById('notifBadge');
+    const toast = document.getElementById('newToast');
+    const toastText = document.getElementById('newToastText');
+    const baseTitle = document.title;
+
+    try { alertsOn = localStorage.getItem('md_alerts') !== 'off'; } catch (e) {}
+    paintBell();
+
+    bell.addEventListener('click', async () => {
+        alertsOn = !alertsOn;
+        try { localStorage.setItem('md_alerts', alertsOn ? 'on' : 'off'); } catch (e) {}
+        if (alertsOn && 'Notification' in window && Notification.permission === 'default') {
+            try { await Notification.requestPermission(); } catch (e) {}
+        }
+        paintBell();
+    });
+
+    function paintBell() {
+        bell.style.opacity = alertsOn ? '1' : '.45';
+        bell.title = alertsOn ? 'New-mail alerts: ON (click to mute)' : 'New-mail alerts: OFF (click to enable)';
+    }
+
+    // Short two-tone chime via WebAudio (no file needed)
+    function chime() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [880, 1175].forEach((f, i) => {
+                const o = ctx.createOscillator(), g = ctx.createGain();
+                o.frequency.value = f; o.type = 'sine';
+                o.connect(g); g.connect(ctx.destination);
+                const t = ctx.currentTime + i * 0.18;
+                g.gain.setValueAtTime(0.0001, t);
+                g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+                o.start(t); o.stop(t + 0.18);
+            });
+        } catch (e) {}
+    }
+
+    function showBadge(n) {
+        badge.textContent = n > 9 ? '9+' : n;
+        badge.hidden = n <= 0;
+        document.title = n > 0 ? `(${n}) ${baseTitle}` : baseTitle;
+    }
+
+    function notifyNew(count) {
+        if (!alertsOn) return;
+        chime();
+        toastText.textContent = count > 1 ? `${count} new emails received` : 'New email received';
+        toast.hidden = false;
+        clearTimeout(window.__toastT);
+        window.__toastT = setTimeout(() => { toast.hidden = true; }, 8000);
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                const n = new Notification('MailDesk', {
+                    body: count > 1 ? `${count} new emails received` : 'A new email just arrived',
+                    icon: "{{ asset('favicon.svg') }}", tag: 'maildesk-new'
+                });
+                n.onclick = () => { window.focus(); location.href = "{{ route('inbox') }}"; };
+            } catch (e) {}
+        }
+    }
+
+    async function poll() {
+        try {
+            const r = await fetch(PING, { headers: { 'X-Requested-With': 'fetch' } });
+            if (!r.ok) return;
+            const d = await r.json();
+            if (lastLatest === null) { lastLatest = d.latest; lastUnread = d.unread; showBadge(d.unread); return; }
+            if (d.latest && d.latest !== lastLatest) {
+                const delta = Math.max(1, (d.unread || 0) - (lastUnread || 0));
+                notifyNew(delta);
+            }
+            lastLatest = d.latest; lastUnread = d.unread;
+            showBadge(d.unread);
+        } catch (e) {}
+    }
+
+    poll();
+    setInterval(poll, 15000);
+})();
+</script>
 @yield('scripts')
 </body>
 </html>

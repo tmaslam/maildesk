@@ -23,6 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/thread/{thread}', [InboxController::class, 'show'])->name('thread');
     Route::post('/thread/{thread}/reply', [InboxController::class, 'reply'])->name('thread.reply');
     Route::post('/sync', [InboxController::class, 'sync'])->name('sync');
+    Route::get('/ping', [InboxController::class, 'ping'])->name('ping');
     Route::get('/attachment/{attachment}', [AttachmentController::class, 'download'])->name('attachment');
 
     Route::middleware('admin')->group(function () {
@@ -36,6 +37,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/mailboxes/{mailbox}/delete', [MailboxController::class, 'destroy'])->name('mailboxes.delete');
         Route::get('/mailboxes/connect-new', [MailboxController::class, 'connectNew'])->name('mailboxes.connect-new');
         Route::get('/mailboxes/{mailbox}/connect', [MailboxController::class, 'connect'])->name('mailboxes.connect');
+        Route::post('/mailboxes/{mailbox}/pull', [MailboxController::class, 'pull'])->name('mailboxes.pull');
 
         Route::get('/activity', [\App\Http\Controllers\ActivityController::class, 'index'])->name('activity');
         Route::get('/users', [UserController::class, 'index'])->name('users');

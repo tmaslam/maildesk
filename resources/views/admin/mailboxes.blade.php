@@ -89,6 +89,12 @@
                         </td>
                         <td style="font-size:12px; color:var(--text-2)">{{ $mb->last_synced_at?->diffForHumans() ?? '—' }}</td>
                         <td style="white-space:nowrap; text-align:right">
+                            @if($mb->isConnected())
+                                <form method="post" action="{{ route('mailboxes.pull', $mb) }}" style="display:inline"
+                                      onsubmit="this.querySelector('button').textContent='Pulling…'; this.querySelector('button').disabled=true;">
+                                    @csrf<button class="btn" type="submit">Pull recent emails</button>
+                                </form>
+                            @endif
                             @if($googleReady)
                                 <a class="btn ghost" href="{{ route('mailboxes.connect', $mb) }}">
                                     {{ $mb->isConnected() ? 'Reconnect' : 'Connect Gmail' }}

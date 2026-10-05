@@ -58,6 +58,22 @@ class MailboxController extends Controller
         return redirect()->away(GmailClient::oauthUrl(0)); // state 0 = create new mailbox
     }
 
+    /** "Pull recent emails" button: import the mailbox's older history on demand. */
+    public function pull(Mailbox $mailbox, \App\Services\MailboxSyncer $syncer)
+    {
+        if (!$mailbox->isConnected()) {
+            return back()->withErrors(['google' => 'Connect this mailbox to Gmail first.']);
+        }
+        @set_time_limit(600);
+        try {
+            $n = $syncer->sync($mailbox, fullHistory: true);
+            return back()->with('status', "Pulled {$n} older emails from {$mailbox->brand_name}.");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Pull failed: ' . $e->getMessage());
+            return back()->withErrors(['google' => 'Pull failed — Gmail was busy, try again in a minute.']);
+        }
+    }
+
     /** Derive a readable brand name from the Gmail address. */
     private static function brandNameFromEmail(string $email): string
     {
@@ -129,6 +145,9 @@ class MailboxController extends Controller
             'access_token'     => $tokens['access_token'],
             'refresh_token'    => $tokens['refresh_token'] ?? $mailbox->refresh_token,
             'token_expires_at' => now()->addSeconds((int) ($tokens['expires_in'] ?? 3600) - 30),
+            // Forward-only by default: only mail from now on. The "Pull recent
+            // emails" button fetches the older history on demand.
+            'last_synced_at'   => now(),
         ])->save();
 
         return $home('connected');

@@ -83,6 +83,15 @@ class InboxController extends Controller
         ]);
     }
 
+    /** Cheap DB-only poll so the page can check for new mail every few seconds. */
+    public function ping()
+    {
+        return response()->json([
+            'latest' => (string) EmailThread::max('updated_at'),
+            'unread' => (int) EmailThread::where('unread', true)->count(),
+        ]);
+    }
+
     public function show(EmailThread $thread)
     {
         $thread->load(['mailbox', 'messages.attachments', 'messages.sentBy', 'reads.user']);

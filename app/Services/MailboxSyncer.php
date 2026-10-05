@@ -13,24 +13,36 @@ use Illuminate\Support\Facades\Log;
  */
 class MailboxSyncer
 {
-    /** @return int number of newly imported messages */
-    public function sync(Mailbox $mb): int
+    /**
+     * @param bool $fullHistory true = "Pull recent emails" button: fetch all
+     *   recent mail. false (default) = only mail that arrived since the mailbox
+     *   was connected / last synced.
+     * @return int number of newly imported messages
+     */
+    public function sync(Mailbox $mb, bool $fullHistory = false): int
     {
         if (!$mb->isConnected() || !$mb->active) {
             return 0;
         }
 
-        // Widen the window if the portal was closed for a while, so nothing is missed.
-        $days = $mb->last_synced_at
-            ? (int) min(30, max(2, (int) $mb->last_synced_at->diffInDays(now()) + 2))
-            : 30;
+        if ($fullHistory) {
+            // On-demand historical pull (capped so one click stays reasonable).
+            $queries = ['in:inbox', 'in:sent', 'in:spam'];
+            $cap = 500;
+        } else {
+            // Only mail received since connection / last successful sync.
+            $since = $mb->last_synced_at ?? $mb->created_at ?? now();
+            $after = $since->copy()->subMinutes(5)->timestamp;
+            $queries = ["in:inbox after:$after", "in:sent after:$after", "in:spam after:$after"];
+            $cap = 300;
+        }
 
         $imported = 0;
         $failures = 0;
         // Spam is synced too: customer mail wrongly flagged by Gmail still
         // reaches the portal inbox (marked with a Spam badge).
-        foreach (["in:inbox newer_than:{$days}d", "in:sent newer_than:{$days}d", "in:spam newer_than:{$days}d"] as $q) {
-            $ids = GmailClient::listMessageIds($mb, $q);
+        foreach ($queries as $q) {
+            $ids = GmailClient::listMessageIds($mb, $q, $cap);
             $known = EmailMessage::whereIn('gmail_id', $ids)->pluck('gmail_id')->flip();
 
             foreach ($ids as $gmailId) {
