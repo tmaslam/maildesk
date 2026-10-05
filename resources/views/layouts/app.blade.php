@@ -192,7 +192,7 @@
                     <span class="avatar">{{ mb_substr(auth()->user()->name ?? '?', 0, 1) }}</span>
                     <span class="user-meta">
                         <b>{{ auth()->user()->name ?? '' }}</b>
-                        <small>{{ auth()->user()?->isAdmin() ? 'Super Admin' : 'Team' }}</small>
+                        <small>&nbsp;·&nbsp;{{ auth()->user()?->isAdmin() ? 'Super Admin' : 'Team' }}</small>
                     </span>
                 </a>
                 <form method="post" action="{{ route('logout') }}" title="Logout">

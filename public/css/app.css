@@ -192,18 +192,24 @@ button { font-family: inherit; }
     align-self: flex-start;
     height: calc(100vh - 76px);
     overflow-y: auto;
+    padding-bottom: 62px; /* room for the fixed user bar */
 }
-.side-bottom { margin-top: auto; padding: 12px 10px 2px 2px; }
+/* User bar — fixed to the bottom-left edge of the screen */
+.side-bottom {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 246px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    z-index: 30;
+}
 
 .user-card {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 8px 8px 8px 10px;
-    box-shadow: 0 1px 3px rgba(32,33,36,.08);
 }
 .user-card .user-info {
     flex: 1;
@@ -211,19 +217,21 @@ button { font-family: inherit; }
     align-items: center;
     gap: 10px;
     min-width: 0;
-    border-radius: 10px;
+    border-radius: 999px;
+    padding: 4px 6px;
+    margin-left: -6px;
 }
-.user-card .avatar { width: 34px; height: 34px; font-size: 14px; }
-.user-card .user-meta { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
-.user-card .user-meta b {
-    font-size: 13px;
-    color: var(--text);
+.user-card .user-info:hover { background: #e9edf2; }
+.user-card .avatar { width: 30px; height: 30px; font-size: 13px; }
+.user-card .user-meta {
+    display: flex;
+    align-items: baseline;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
-.user-card .user-meta small { font-size: 11px; color: var(--text-2); }
-.user-card .user-info:hover .user-meta b { color: var(--blue); }
+.user-card .user-meta b { font-size: 13.5px; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.user-card .user-meta small { font-size: 12.5px; color: #9aa0a6; flex: 0 0 auto; }
 .user-card form { margin: 0; flex: 0 0 auto; }
 .logout-ico {
     width: 34px;
@@ -591,7 +599,8 @@ table.list td { padding: 10px; border-bottom: 1px solid #f1f3f4; vertical-align:
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
     .shell { flex-direction: column; padding: 0 8px 12px; }
-    .sidebar { width: 100%; display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0; }
+    .sidebar { width: 100%; display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0; position: static; height: auto; min-height: 0; }
+    .side-bottom { position: static; width: auto; border-top: 0; padding: 4px 0 0; }
     .side-item { padding: 6px 14px; margin: 0; }
     .side-sep, .side-label { display: none; }
     .logo span:last-child { display: none; }
