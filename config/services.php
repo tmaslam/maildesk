@@ -39,6 +39,8 @@ return [
         'client_id'     => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect'      => env('GOOGLE_REDIRECT_URI'),
+        // Pub/Sub topic for Gmail real-time push (public name, not a secret).
+        'push_topic'    => env('GMAIL_PUSH_TOPIC', 'projects/maildesk-510709/topics/gmail-push'),
     ],
 
 ];

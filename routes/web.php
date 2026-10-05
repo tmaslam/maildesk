@@ -14,6 +14,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Google redirects here after consent; auth happens via the state-linked mailbox.
 Route::get('/oauth/callback', [MailboxController::class, 'callback'])->name('oauth.callback');
 
+// Gmail real-time push notifications (Pub/Sub). Token in path; no session.
+Route::post('/gmail/webhook/{token}', [\App\Http\Controllers\GmailWebhookController::class, 'handle'])
+    ->name('gmail.webhook');
+
 Route::middleware('auth')->group(function () {
     Route::get('/', [InboxController::class, 'index'])->name('inbox');
     Route::get('/thread/{thread}', [InboxController::class, 'show'])->name('thread');

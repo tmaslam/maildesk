@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Behind Cloudflare Tunnel: trust the proxy so https URLs and
         // secure cookies are generated correctly.
         $middleware->trustProxies(at: '*');
+        // Pub/Sub posts here from outside; it has no CSRF token.
+        $middleware->validateCsrfTokens(except: ['gmail/webhook/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

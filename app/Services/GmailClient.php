@@ -134,6 +134,31 @@ class GmailClient
         ]);
     }
 
+    /**
+     * Register Gmail push notifications: Gmail will publish to the Pub/Sub
+     * topic whenever this mailbox receives mail. Expires in ~7 days, so the
+     * sync cron renews it automatically.
+     */
+    public static function watch(Mailbox $mb): array
+    {
+        $topic = config('services.google.push_topic');
+        $res = self::http('POST', self::API . '/watch', json_encode([
+            'topicName' => $topic,
+            'labelIds'  => ['INBOX', 'SPAM'],
+            'labelFilterBehavior' => 'INCLUDE',
+        ]), [
+            'Authorization: Bearer ' . self::accessToken($mb),
+            'Content-Type: application/json',
+        ]);
+
+        if (!empty($res['expiration'])) {
+            $mb->forceFill([
+                'watch_expires_at' => date('Y-m-d H:i:s', (int) ($res['expiration'] / 1000)),
+            ])->save();
+        }
+        return $res;
+    }
+
     public static function getAttachment(Mailbox $mb, string $msgId, string $attId): array
     {
         return self::http('GET', self::API . "/messages/{$msgId}/attachments/" . rawurlencode($attId),
