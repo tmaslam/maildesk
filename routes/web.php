@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/mailboxes/connect-new', [MailboxController::class, 'connectNew'])->name('mailboxes.connect-new');
         Route::get('/mailboxes/{mailbox}/connect', [MailboxController::class, 'connect'])->name('mailboxes.connect');
         Route::post('/mailboxes/{mailbox}/pull', [MailboxController::class, 'pull'])->name('mailboxes.pull');
+        Route::post('/mailboxes/{mailbox}/disconnect', [MailboxController::class, 'disconnect'])->name('mailboxes.disconnect');
 
         Route::get('/activity', [\App\Http\Controllers\ActivityController::class, 'index'])->name('activity');
         Route::get('/users', [UserController::class, 'index'])->name('users');

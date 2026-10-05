@@ -58,6 +58,19 @@ class MailboxController extends Controller
         return redirect()->away(GmailClient::oauthUrl(0)); // state 0 = create new mailbox
     }
 
+    /** Disconnect Gmail but keep the brand and its already-imported emails. */
+    public function disconnect(Mailbox $mailbox)
+    {
+        $mailbox->forceFill([
+            'refresh_token'    => null,
+            'access_token'     => null,
+            'token_expires_at' => null,
+            'watch_expires_at' => null,
+        ])->save();
+
+        return back()->with('status', "{$mailbox->brand_name} disconnected from Gmail. Its emails are kept; reconnect any time.");
+    }
+
     /** "Pull recent emails" button: import the mailbox's older history on demand. */
     public function pull(Mailbox $mailbox, \App\Services\MailboxSyncer $syncer)
     {

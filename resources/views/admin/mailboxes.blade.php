@@ -100,6 +100,13 @@
                                     {{ $mb->isConnected() ? 'Reconnect' : 'Connect Gmail' }}
                                 </a>
                             @endif
+                            @if($mb->isConnected())
+                                <form method="post" action="{{ route('mailboxes.disconnect', $mb) }}" style="display:inline"
+                                      data-confirm="Disconnect {{ $mb->brand_name }} from Gmail? Emails already here are kept; no new mail will arrive until you reconnect."
+                                      onsubmit="return confirm(this.dataset.confirm)">
+                                    @csrf<button class="btn ghost">Disconnect</button>
+                                </form>
+                            @endif
                             <form method="post" action="{{ route('mailboxes.delete', $mb) }}" style="display:inline"
                                   data-confirm="Remove this brand and ALL its stored conversations? This cannot be undone."
                                   onsubmit="return confirm(this.dataset.confirm)">
