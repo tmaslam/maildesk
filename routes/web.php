@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/mailboxes/{mailbox}/pull', [MailboxController::class, 'pull'])->name('mailboxes.pull');
         Route::post('/mailboxes/{mailbox}/disconnect', [MailboxController::class, 'disconnect'])->name('mailboxes.disconnect');
 
+        Route::post('/threads/delete', [InboxController::class, 'destroyMany'])->name('threads.delete');
         Route::get('/activity', [\App\Http\Controllers\ActivityController::class, 'index'])->name('activity');
         Route::get('/users', [UserController::class, 'index'])->name('users');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');

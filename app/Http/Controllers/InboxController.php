@@ -83,6 +83,17 @@ class InboxController extends Controller
         ]);
     }
 
+    /** Admin bulk delete of conversations (removes from portal, not from Gmail). */
+    public function destroyMany(Request $request)
+    {
+        $ids = array_filter((array) $request->input('ids', []));
+        if (empty($ids)) {
+            return back();
+        }
+        $n = EmailThread::whereIn('id', $ids)->delete();
+        return back()->with('status', $n . ' conversation' . ($n === 1 ? '' : 's') . ' deleted.');
+    }
+
     /** Cheap DB-only poll so the page can check for new mail every few seconds. */
     public function ping()
     {

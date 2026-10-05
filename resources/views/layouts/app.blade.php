@@ -310,13 +310,14 @@
             const r = await fetch(PING, { headers: { 'X-Requested-With': 'fetch' } });
             if (!r.ok) return;
             const d = await r.json();
-            if (lastLatest === null) { lastLatest = d.latest; lastUnread = d.unread; showBadge(d.unread); return; }
-            if (d.latest && d.latest !== lastLatest) {
-                const delta = Math.max(1, (d.unread || 0) - (lastUnread || 0));
-                notifyNew(delta);
+            const unread = d.unread || 0;
+            // Alarm ONLY when the unread count actually rises (a real new email),
+            // not when a thread is merely re-synced, read or replied to.
+            if (lastUnread !== null && unread > lastUnread) {
+                notifyNew(unread - lastUnread);
             }
-            lastLatest = d.latest; lastUnread = d.unread;
-            showBadge(d.unread);
+            lastUnread = unread;
+            showBadge(unread);
         } catch (e) {}
     }
 

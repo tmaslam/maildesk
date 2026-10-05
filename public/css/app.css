@@ -429,6 +429,29 @@ button { font-family: inherit; }
 .row .when { flex: 0 0 auto; font-size: 12px; min-width: 64px; text-align: right; }
 .row .clip { flex: 0 0 auto; }
 
+/* Admin row checkboxes + bulk bar */
+.row-wrap { display: flex; align-items: stretch; }
+.row-wrap > .row { flex: 1; min-width: 0; }
+.row-chk {
+    width: 17px;
+    height: 17px;
+    margin: 0 0 0 16px;
+    align-self: center;
+    flex: 0 0 auto;
+    cursor: pointer;
+    accent-color: var(--blue);
+}
+.selall {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-2);
+    cursor: pointer;
+    padding-left: 4px;
+}
+.selall input { width: 16px; height: 16px; accent-color: var(--blue); cursor: pointer; }
+
 .empty { padding: 72px 24px; text-align: center; color: var(--text-2); }
 .empty h3 { color: var(--text); margin: 12px 0 4px; }
 
