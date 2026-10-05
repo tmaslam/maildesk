@@ -52,7 +52,14 @@
                 </div>
                 <span class="when">{{ $msg->sent_at?->format('D, M j, Y g:i A') }}</span>
             </div>
-            <div class="msg-body">{{ \App\Support\Mask::body($msg->body_text) }}</div>
+            @php [$mainText, $quotedText] = \App\Support\Quote::split($msg->body_text); @endphp
+            <div class="msg-body">{{ \App\Support\Mask::body($mainText) }}</div>
+            @if($quotedText !== '')
+                <details class="quoted">
+                    <summary title="Show quoted text">&#8226;&#8226;&#8226;</summary>
+                    <div class="msg-body quoted-body">{{ \App\Support\Mask::body($quotedText) }}</div>
+                </details>
+            @endif
             @foreach($msg->attachments as $att)
                 <a class="att" href="{{ route('attachment', $att) }}">
                     &#128206; {{ \App\Support\Mask::body($att->filename) }}

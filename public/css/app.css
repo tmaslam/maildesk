@@ -310,6 +310,26 @@ button { font-family: inherit; }
 .msg-head .when { margin-left: auto; color: var(--text-2); font-size: 12px; }
 .msg-body { white-space: pre-wrap; word-wrap: break-word; color: var(--text); line-height: 1.55; max-width: 900px; }
 .msg.out { background: #fafcff; }
+
+/* Quoted reply history — hidden behind ••• like Gmail */
+.quoted { margin-top: 10px; }
+.quoted summary {
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    background: #e8eaed;
+    color: #5f6368;
+    border-radius: 999px;
+    padding: 0 10px 6px;
+    font-size: 16px;
+    letter-spacing: 2px;
+    line-height: 12px;
+    height: 16px;
+}
+.quoted summary::-webkit-details-marker { display: none; }
+.quoted summary:hover { background: #dadce0; }
+.quoted-body { margin-top: 10px; color: var(--text-2); border-left: 2px solid var(--border); padding-left: 12px; }
 .att {
     display: inline-flex;
     align-items: center;
