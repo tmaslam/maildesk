@@ -42,9 +42,15 @@
                         <td>{{ $u->name }}</td>
                         <td>{{ $u->username }}</td>
                         <td><span class="pill {{ $u->role }}">{{ $u->role === 'admin' ? 'Super Admin' : 'Team' }}</span></td>
-                        <td style="text-align:right">
+                        <td style="text-align:right; white-space:nowrap">
+                            <form method="post" action="{{ route('users.password', $u) }}" style="display:inline-flex; gap:6px; align-items:center">
+                                @csrf
+                                <input class="f" style="width:150px; padding:7px 10px" type="text" name="password"
+                                       placeholder="New password" minlength="6" required>
+                                <button class="btn ghost">Set</button>
+                            </form>
                             @if($u->id !== auth()->id())
-                                <form method="post" action="{{ route('users.delete', $u) }}"
+                                <form method="post" action="{{ route('users.delete', $u) }}" style="display:inline"
                                       data-confirm="Remove this team member?"
                                       onsubmit="return confirm(this.dataset.confirm)">
                                     @csrf<button class="btn danger">Remove</button>

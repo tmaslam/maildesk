@@ -168,6 +168,16 @@ button { font-family: inherit; }
     text-transform: uppercase;
 }
 
+.who-profile {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 999px;
+    padding: 4px 6px 4px 12px;
+    color: var(--text-2);
+}
+.who-profile:hover { background: #e9edf2; }
+
 .btn-logout {
     border: 1px solid var(--border);
     background: var(--surface);

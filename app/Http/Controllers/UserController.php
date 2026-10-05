@@ -27,6 +27,15 @@ class UserController extends Controller
         return back()->with('status', 'Team member added.');
     }
 
+    public function resetPassword(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'password' => ['required', 'string', 'min:6'],
+        ]);
+        $user->update(['password' => $data['password']]);
+        return back()->with('status', "Password updated for {$user->name}.");
+    }
+
     public function destroy(User $user)
     {
         if ($user->id === auth()->id()) {

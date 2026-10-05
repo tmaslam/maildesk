@@ -23,11 +23,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/thread/{thread}', [InboxController::class, 'show'])->name('thread');
     Route::post('/thread/{thread}/reply', [InboxController::class, 'reply'])->name('thread.reply');
     Route::post('/sync', [InboxController::class, 'sync'])->name('sync');
-    Route::get('/password', [AuthController::class, 'showPassword'])->name('password');
-    Route::post('/password', [AuthController::class, 'updatePassword'])->name('password.update');
     Route::get('/attachment/{attachment}', [AttachmentController::class, 'download'])->name('attachment');
 
     Route::middleware('admin')->group(function () {
+        // Only the admin can change their own password; team passwords are managed below.
+        Route::get('/password', [AuthController::class, 'showPassword'])->name('password');
+        Route::post('/password', [AuthController::class, 'updatePassword'])->name('password.update');
+        Route::post('/users/{user}/password', [UserController::class, 'resetPassword'])->name('users.password');
         Route::get('/mailboxes', [MailboxController::class, 'index'])->name('mailboxes');
         Route::post('/mailboxes', [MailboxController::class, 'store'])->name('mailboxes.store');
         Route::post('/mailboxes/{mailbox}', [MailboxController::class, 'update'])->name('mailboxes.update');

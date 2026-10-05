@@ -132,8 +132,15 @@
         });
     </script>
     <div class="who">
-        <span>{{ auth()->user()->name ?? '' }}</span>
-        <span class="avatar">{{ mb_substr(auth()->user()->name ?? '?', 0, 1) }}</span>
+        @if(auth()->user()?->isAdmin())
+            <a class="who-profile" href="{{ route('password') }}" title="Change password">
+                <span>{{ auth()->user()->name }}</span>
+                <span class="avatar">{{ mb_substr(auth()->user()->name, 0, 1) }}</span>
+            </a>
+        @else
+            <span>{{ auth()->user()->name ?? '' }}</span>
+            <span class="avatar">{{ mb_substr(auth()->user()->name ?? '?', 0, 1) }}</span>
+        @endif
         <form method="post" action="{{ route('logout') }}">@csrf<button class="btn-logout">Sign out</button></form>
     </div>
 </div>
@@ -189,13 +196,23 @@
 
         <div class="side-bottom">
             <div class="user-card">
-                <a class="user-info" href="{{ route('password') }}" title="Change password">
-                    <span class="avatar">{{ mb_substr(auth()->user()->name ?? '?', 0, 1) }}</span>
-                    <span class="user-meta">
-                        <b>{{ auth()->user()->name ?? '' }}</b>
-                        <small>&nbsp;·&nbsp;{{ auth()->user()?->isAdmin() ? 'Super Admin' : 'Team' }}</small>
+                @if(auth()->user()?->isAdmin())
+                    <a class="user-info" href="{{ route('password') }}" title="Change password">
+                        <span class="avatar">{{ mb_substr(auth()->user()->name, 0, 1) }}</span>
+                        <span class="user-meta">
+                            <b>{{ auth()->user()->name }}</b>
+                            <small>&nbsp;·&nbsp;Super Admin</small>
+                        </span>
+                    </a>
+                @else
+                    <span class="user-info" style="cursor:default">
+                        <span class="avatar">{{ mb_substr(auth()->user()->name ?? '?', 0, 1) }}</span>
+                        <span class="user-meta">
+                            <b>{{ auth()->user()->name ?? '' }}</b>
+                            <small>&nbsp;·&nbsp;Team</small>
+                        </span>
                     </span>
-                </a>
+                @endif
             </div>
         </div>
     </nav>
