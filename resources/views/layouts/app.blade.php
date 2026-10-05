@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'MailDesk')</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -195,12 +196,6 @@
                         <small>&nbsp;·&nbsp;{{ auth()->user()?->isAdmin() ? 'Super Admin' : 'Team' }}</small>
                     </span>
                 </a>
-                <form method="post" action="{{ route('logout') }}" title="Logout">
-                    @csrf
-                    <button class="logout-ico" type="submit" aria-label="Logout">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z"/></svg>
-                    </button>
-                </form>
             </div>
         </div>
     </nav>
