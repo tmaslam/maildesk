@@ -228,12 +228,6 @@
     </main>
 </div>
 
-<div class="new-toast" id="newToast" hidden>
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
-    <span id="newToastText">New email received</span>
-    <a href="{{ route('inbox') }}" class="new-toast-btn">Open</a>
-</div>
-
 <script>
 (function () {
     const PING = "{{ route('ping') }}";
@@ -243,8 +237,6 @@
 
     const bell = document.getElementById('notifBell');
     const badge = document.getElementById('notifBadge');
-    const toast = document.getElementById('newToast');
-    const toastText = document.getElementById('newToastText');
     const baseTitle = document.title;
 
     try { alertsOn = localStorage.getItem('md_alerts') !== 'off'; } catch (e) {}
@@ -290,10 +282,6 @@
     function notifyNew(count) {
         if (!alertsOn) return;
         chime();
-        toastText.textContent = count > 1 ? `${count} new emails received` : 'New email received';
-        toast.hidden = false;
-        clearTimeout(window.__toastT);
-        window.__toastT = setTimeout(() => { toast.hidden = true; }, 8000);
         if ('Notification' in window && Notification.permission === 'granted') {
             try {
                 const n = new Notification('MailDesk', {
