@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminOnly::class,
         ]);
         $middleware->redirectGuestsTo('/login');
+        // Behind Cloudflare Tunnel: trust the proxy so https URLs and
+        // secure cookies are generated correctly.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
