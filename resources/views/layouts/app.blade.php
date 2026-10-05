@@ -180,7 +180,25 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#5f6368"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-8 0a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-2.7 0-8 1.3-8 4v3h10v-3c0-1 .5-1.9 1.4-2.6A13.6 13.6 0 0 0 8 13zm8 0c-.6 0-1.3 0-2 .1A5.3 5.3 0 0 1 16 17v3h8v-3c0-2.7-5.3-4-8-4z"/></svg>
                 Team
             </a>
+            <a class="side-item {{ request()->routeIs('activity') ? 'active' : '' }}" href="{{ route('activity') }}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#5f6368"><path d="M13 3a9 9 0 0 0-9 9H1l3.9 3.9L8.8 12H6a7 7 0 1 1 2 4.9l-1.4 1.4A9 9 0 1 0 13 3zm-1 5v5l4.3 2.5.7-1.2-3.5-2.1V8H12z"/></svg>
+                Activity
+            </a>
         @endif
+
+        <div class="side-bottom">
+            <a class="side-item {{ request()->routeIs('password') ? 'active' : '' }}" href="{{ route('password') }}" title="Change password">
+                <span class="avatar" style="width:26px;height:26px;font-size:12px">{{ mb_substr(auth()->user()->name ?? '?', 0, 1) }}</span>
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ auth()->user()->name ?? '' }}</span>
+            </a>
+            <form method="post" action="{{ route('logout') }}">
+                @csrf
+                <button class="side-item side-logout" type="submit">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#5f6368"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z"/></svg>
+                    Logout
+                </button>
+            </form>
+        </div>
     </nav>
 
     <main class="main">

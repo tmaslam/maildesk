@@ -23,6 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/thread/{thread}', [InboxController::class, 'show'])->name('thread');
     Route::post('/thread/{thread}/reply', [InboxController::class, 'reply'])->name('thread.reply');
     Route::post('/sync', [InboxController::class, 'sync'])->name('sync');
+    Route::get('/password', [AuthController::class, 'showPassword'])->name('password');
+    Route::post('/password', [AuthController::class, 'updatePassword'])->name('password.update');
     Route::get('/attachment/{attachment}', [AttachmentController::class, 'download'])->name('attachment');
 
     Route::middleware('admin')->group(function () {
@@ -33,6 +35,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/mailboxes/connect-new', [MailboxController::class, 'connectNew'])->name('mailboxes.connect-new');
         Route::get('/mailboxes/{mailbox}/connect', [MailboxController::class, 'connect'])->name('mailboxes.connect');
 
+        Route::get('/activity', [\App\Http\Controllers\ActivityController::class, 'index'])->name('activity');
         Route::get('/users', [UserController::class, 'index'])->name('users');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::post('/users/{user}/delete', [UserController::class, 'destroy'])->name('users.delete');

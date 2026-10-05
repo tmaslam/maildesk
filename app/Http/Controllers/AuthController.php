@@ -45,6 +45,25 @@ class AuthController extends Controller
         return redirect()->intended(route('inbox'));
     }
 
+    public function showPassword()
+    {
+        return view('auth.password');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $data = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password'         => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'current_password.current_password' => 'Current password is incorrect.',
+        ]);
+
+        $request->user()->update(['password' => $data['password']]);
+
+        return redirect()->route('inbox')->with('status', 'Password changed successfully.');
+    }
+
     public function logout(Request $request)
     {
         Auth::logout();

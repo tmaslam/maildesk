@@ -17,4 +17,9 @@ class ThreadRead extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function thread(): BelongsTo
+    {
+        return $this->belongsTo(EmailThread::class, 'thread_id');
+    }
 }
