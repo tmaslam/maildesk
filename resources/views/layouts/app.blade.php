@@ -187,17 +187,21 @@
         @endif
 
         <div class="side-bottom">
-            <a class="side-item {{ request()->routeIs('password') ? 'active' : '' }}" href="{{ route('password') }}" title="Change password">
-                <span class="avatar" style="width:26px;height:26px;font-size:12px">{{ mb_substr(auth()->user()->name ?? '?', 0, 1) }}</span>
-                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ auth()->user()->name ?? '' }}</span>
-            </a>
-            <form method="post" action="{{ route('logout') }}">
-                @csrf
-                <button class="side-item side-logout" type="submit">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#5f6368"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z"/></svg>
-                    Logout
-                </button>
-            </form>
+            <div class="user-card">
+                <a class="user-info" href="{{ route('password') }}" title="Change password">
+                    <span class="avatar">{{ mb_substr(auth()->user()->name ?? '?', 0, 1) }}</span>
+                    <span class="user-meta">
+                        <b>{{ auth()->user()->name ?? '' }}</b>
+                        <small>{{ auth()->user()?->isAdmin() ? 'Super Admin' : 'Team' }}</small>
+                    </span>
+                </a>
+                <form method="post" action="{{ route('logout') }}" title="Logout">
+                    @csrf
+                    <button class="logout-ico" type="submit" aria-label="Logout">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z"/></svg>
+                    </button>
+                </form>
+            </div>
         </div>
     </nav>
 
