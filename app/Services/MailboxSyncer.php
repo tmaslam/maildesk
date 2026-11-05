@@ -13,14 +13,23 @@ use Illuminate\Support\Facades\Log;
  */
 class MailboxSyncer
 {
+    /** True when the last sync() stopped early because its time budget ran out. */
+    public bool $timedOut = false;
+
     /**
      * @param bool $fullHistory true = "Pull recent emails" button: fetch all
      *   recent mail. false (default) = only mail that arrived since the mailbox
      *   was connected / last synced.
+     * @param int|null $budgetSeconds stop importing after this many seconds
+     *   (web requests sit behind Cloudflare's 100s timeout). Already-imported
+     *   messages are skipped, so calling again simply continues the work.
      * @return int number of newly imported messages
      */
-    public function sync(Mailbox $mb, bool $fullHistory = false): int
+    public function sync(Mailbox $mb, bool $fullHistory = false, ?int $budgetSeconds = null): int
     {
+        $this->timedOut = false;
+        $deadline = $budgetSeconds ? microtime(true) + $budgetSeconds : null;
+
         if (!$mb->isConnected() || !$mb->active) {
             return 0;
         }
@@ -42,12 +51,20 @@ class MailboxSyncer
         // Spam is synced too: customer mail wrongly flagged by Gmail still
         // reaches the portal inbox (marked with a Spam badge).
         foreach ($queries as $q) {
+            if ($deadline && microtime(true) > $deadline) {
+                $this->timedOut = true;
+                break;
+            }
             $ids = GmailClient::listMessageIds($mb, $q, $cap);
             $known = EmailMessage::whereIn('gmail_id', $ids)->pluck('gmail_id')->flip();
 
             foreach ($ids as $gmailId) {
                 if (isset($known[$gmailId])) {
                     continue;
+                }
+                if ($deadline && microtime(true) > $deadline) {
+                    $this->timedOut = true;
+                    break 2;
                 }
                 // One bad message (broken encoding, concurrent sync race) must not
                 // wedge the whole mailbox: log it and keep importing the rest.
@@ -63,7 +80,7 @@ class MailboxSyncer
             }
         }
 
-        if ($failures === 0 || $imported > 0) {
+        if (!$this->timedOut && ($failures === 0 || $imported > 0)) {
             $mb->forceFill(['last_synced_at' => now()])->save();
         }
 

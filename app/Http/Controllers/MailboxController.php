@@ -19,9 +19,11 @@ class MailboxController extends Controller
     {
         $data = $request->validate([
             'brand_name' => ['required', 'string', 'max:100'],
+            'email'      => ['nullable', 'email', 'max:190', 'unique:mailboxes,email'],
             'website'    => ['nullable', 'string', 'max:190'],
             'signature'  => ['nullable', 'string', 'max:2000'],
         ]);
+        $data['email'] = isset($data['email']) ? strtolower($data['email']) : null;
         Mailbox::create($data);
         return back()->with('status', 'Brand added. Now connect its Gmail account.');
     }
@@ -30,11 +32,19 @@ class MailboxController extends Controller
     {
         $data = $request->validate([
             'brand_name' => ['required', 'string', 'max:100'],
+            'email'      => ['nullable', 'email', 'max:190', 'unique:mailboxes,email,' . $mailbox->id],
             'website'    => ['nullable', 'string', 'max:190'],
             'signature'  => ['nullable', 'string', 'max:2000'],
             'active'     => ['nullable', 'boolean'],
         ]);
         $data['active'] = $request->boolean('active');
+        if ($mailbox->isConnected()) {
+            // The address of a connected mailbox comes from Gmail itself;
+            // change it by reconnecting with another account.
+            unset($data['email']);
+        } else {
+            $data['email'] = isset($data['email']) ? strtolower($data['email']) : null;
+        }
         $mailbox->update($data);
         return back()->with('status', 'Mailbox updated.');
     }
@@ -48,7 +58,7 @@ class MailboxController extends Controller
     public function connect(Mailbox $mailbox)
     {
         abort_unless(config('services.google.client_id'), 400, 'Google credentials missing in .env');
-        return redirect()->away(GmailClient::oauthUrl($mailbox->id));
+        return redirect()->away(GmailClient::oauthUrl($mailbox->id, $mailbox->email));
     }
 
     /** One-click flow: sign in with Gmail and the brand is created automatically. */
@@ -71,20 +81,33 @@ class MailboxController extends Controller
         return back()->with('status', "{$mailbox->brand_name} disconnected from Gmail. Its emails are kept; reconnect any time.");
     }
 
-    /** "Pull recent emails" button: import the mailbox's older history on demand. */
-    public function pull(Mailbox $mailbox, \App\Services\MailboxSyncer $syncer)
+    /**
+     * "Pull recent emails" button: import the mailbox's older history on demand.
+     * Works in ~45s batches (Cloudflare cuts requests at 100s); the page calls
+     * this repeatedly via fetch until it reports done.
+     */
+    public function pull(Request $request, Mailbox $mailbox, \App\Services\MailboxSyncer $syncer)
     {
+        $json = $request->expectsJson();
         if (!$mailbox->isConnected()) {
-            return back()->withErrors(['google' => 'Connect this mailbox to Gmail first.']);
+            return $json
+                ? response()->json(['error' => 'Connect this mailbox to Gmail first.'], 422)
+                : back()->withErrors(['google' => 'Connect this mailbox to Gmail first.']);
         }
-        @set_time_limit(600);
+        @set_time_limit(120);
         try {
-            $n = $syncer->sync($mailbox, fullHistory: true);
-            return back()->with('status', "Pulled {$n} older emails from {$mailbox->brand_name}.");
+            $n = $syncer->sync($mailbox, fullHistory: true, budgetSeconds: 45);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Pull failed: ' . $e->getMessage());
-            return back()->withErrors(['google' => 'Pull failed — Gmail was busy, try again in a minute.']);
+            return $json
+                ? response()->json(['error' => 'Gmail was busy, try again in a minute.'], 503)
+                : back()->withErrors(['google' => 'Pull failed — Gmail was busy, try again in a minute.']);
         }
+        if ($json) {
+            return response()->json(['imported' => $n, 'done' => !$syncer->timedOut]);
+        }
+        return back()->with('status', "Pulled {$n} older emails from {$mailbox->brand_name}."
+            . ($syncer->timedOut ? ' Click again to continue.' : ''));
     }
 
     /** Derive a readable brand name from the Gmail address. */

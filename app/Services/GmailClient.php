@@ -16,10 +16,11 @@ class GmailClient
     const API       = 'https://gmail.googleapis.com/gmail/v1/users/me';
     const SCOPES    = 'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.send';
 
-    public static function oauthUrl(int $mailboxId): string
+    /** @param string|null $loginHint Gmail address Google should preselect. */
+    public static function oauthUrl(int $mailboxId, ?string $loginHint = null): string
     {
         $g = config('services.google');
-        return self::AUTH_URL . '?' . http_build_query([
+        return self::AUTH_URL . '?' . http_build_query(array_filter([
             'client_id'     => $g['client_id'],
             'redirect_uri'  => $g['redirect'],
             'response_type' => 'code',
@@ -27,7 +28,8 @@ class GmailClient
             'access_type'   => 'offline',
             'prompt'        => 'consent',
             'state'         => self::signState($mailboxId),
-        ]);
+            'login_hint'    => $loginHint,
+        ]));
     }
 
     /**

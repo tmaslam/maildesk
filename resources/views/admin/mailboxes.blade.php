@@ -54,6 +54,10 @@
                         <input class="f" name="brand_name" placeholder="1Dollar Digitizing" required>
                     </div>
                     <div>
+                        <label class="f">Gmail account (the one you will connect)</label>
+                        <input class="f" type="email" name="email" placeholder="1dollardigitizing@gmail.com">
+                    </div>
+                    <div>
                         <label class="f">Website (optional)</label>
                         <input class="f" name="website" placeholder="1dollardigitizing.com">
                     </div>
@@ -91,7 +95,7 @@
                         <td style="white-space:nowrap; text-align:right">
                             @if($mb->isConnected())
                                 <form method="post" action="{{ route('mailboxes.pull', $mb) }}" style="display:inline"
-                                      onsubmit="this.querySelector('button').textContent='Pulling…'; this.querySelector('button').disabled=true;">
+                                      onsubmit="return mdPull(this, event)">
                                     @csrf<button class="btn" type="submit">Pull recent emails</button>
                                 </form>
                             @endif
@@ -126,6 +130,16 @@
                                             <input class="f" name="brand_name" value="{{ $mb->brand_name }}" required>
                                         </div>
                                         <div>
+                                            <label class="f">Gmail account</label>
+                                            @if($mb->isConnected())
+                                                <input class="f" value="{{ $mb->email }}" disabled
+                                                       title="Connected — use Reconnect to switch to another Gmail">
+                                                <div style="font-size:12px; color:var(--text-2); margin-top:4px">Connected. To change it, click Reconnect and pick the other Gmail.</div>
+                                            @else
+                                                <input class="f" type="email" name="email" value="{{ $mb->email }}" placeholder="name@gmail.com">
+                                            @endif
+                                        </div>
+                                        <div>
                                             <label class="f">Website</label>
                                             <input class="f" name="website" value="{{ $mb->website }}">
                                         </div>
@@ -151,5 +165,38 @@
             </table>
         </div>
     </div>
+<script>
+// Pull history in short batches so no single request hits Cloudflare's 100s limit.
+async function mdPull(form, ev) {
+    ev.preventDefault();
+    const btn = form.querySelector('button');
+    const token = form.querySelector('input[name=_token]').value;
+    btn.disabled = true;
+    let total = 0, idle = 0;
+    try {
+        for (let round = 1; round <= 40; round++) {
+            btn.textContent = `Pulling… ${total} imported`;
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {'Accept': 'application/json', 'X-CSRF-TOKEN': token},
+            });
+            const data = await res.json().catch(() => ({error: 'Server timeout'}));
+            if (!res.ok || data.error) {
+                alert(`Pull stopped after ${total} emails: ${data.error || res.status}. Click again to continue.`);
+                break;
+            }
+            total += data.imported;
+            if (data.done) { alert(`Done — pulled ${total} older emails.`); break; }
+            // Two batches in a row with nothing imported: stop rather than loop forever.
+            idle = data.imported ? 0 : idle + 1;
+            if (idle >= 2) { alert(`Pulled ${total} emails; some messages could not be imported.`); break; }
+        }
+    } catch (e) {
+        alert(`Pull interrupted after ${total} emails. Click again to continue.`);
+    }
+    location.reload();
+    return false;
+}
+</script>
 @endsection
 
