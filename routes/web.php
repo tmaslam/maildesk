@@ -33,9 +33,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/push/unsubscribe', [\App\Http\Controllers\PushController::class, 'unsubscribe'])->name('push.unsubscribe');
     Route::post('/compose', [\App\Http\Controllers\ComposeController::class, 'send'])->name('compose.send');
 
-    // Labels: the whole team can create and apply them; admin manages (below).
+    // Labels: the whole team can create, apply, recolour and delete them.
     Route::post('/labels', [\App\Http\Controllers\LabelController::class, 'store'])->name('labels.store');
     Route::post('/thread/{thread}/labels', [\App\Http\Controllers\LabelController::class, 'setForThread'])->name('thread.labels');
+    Route::get('/labels', [\App\Http\Controllers\LabelController::class, 'index'])->name('labels');
+    Route::post('/labels/{label}', [\App\Http\Controllers\LabelController::class, 'update'])->name('labels.update');
+    Route::post('/labels/{label}/delete', [\App\Http\Controllers\LabelController::class, 'destroy'])->name('labels.delete');
     Route::get('/attachment/{attachment}', [AttachmentController::class, 'download'])->name('attachment');
 
     Route::middleware('admin')->group(function () {
@@ -54,9 +57,6 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/threads/delete', [InboxController::class, 'destroyMany'])->name('threads.delete');
         Route::post('/threads/label', [\App\Http\Controllers\LabelController::class, 'bulk'])->name('threads.label');
-        Route::get('/labels', [\App\Http\Controllers\LabelController::class, 'index'])->name('labels');
-        Route::post('/labels/{label}', [\App\Http\Controllers\LabelController::class, 'update'])->name('labels.update');
-        Route::post('/labels/{label}/delete', [\App\Http\Controllers\LabelController::class, 'destroy'])->name('labels.delete');
         Route::get('/activity', [\App\Http\Controllers\ActivityController::class, 'index'])->name('activity');
         Route::get('/users', [UserController::class, 'index'])->name('users');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');

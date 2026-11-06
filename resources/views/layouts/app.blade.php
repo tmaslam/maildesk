@@ -204,7 +204,7 @@
                     @if($lb->unread_count)<span class="count">{{ $lb->unread_count }}</span>@endif
                 </a>
             @endforeach
-            @if(auth()->user()?->isAdmin() && $sidebarLabels->isNotEmpty())
+            @if($sidebarLabels->isNotEmpty())
                 <a class="side-item side-small" href="{{ route('labels') }}">Manage labels</a>
             @endif
         @endisset

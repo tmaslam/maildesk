@@ -36,7 +36,7 @@
                 <div class="label-pop">
                     <div class="label-pop-title">Label as:</div>
                     <div id="threadLabelList">
-                        @php $canManage = auth()->user()?->isAdmin(); @endphp
+                        @php $canManage = (bool) auth()->user(); @endphp
                         @foreach($allLabels as $lb)
                             <div class="label-item" data-id="{{ $lb->id }}" data-name="{{ $lb->name }}">
                                 <label class="label-opt">
