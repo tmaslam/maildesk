@@ -51,13 +51,17 @@ class LabelController extends Controller
             'color' => ['required', Rule::in(Label::COLORS)],
         ], ['name.unique' => 'A label with this name already exists.']);
         $label->update($data);
-        return back()->with('status', 'Label saved.');
+        return $request->expectsJson()
+            ? response()->json(['label' => $label->only('id', 'name', 'color')])
+            : back()->with('status', 'Label saved.');
     }
 
-    public function destroy(Label $label)
+    public function destroy(Request $request, Label $label)
     {
         $label->delete(); // removed from every conversation; the emails stay
-        return back()->with('status', "Label \"{$label->name}\" deleted. The emails themselves are kept.");
+        return $request->expectsJson()
+            ? response()->json(['ok' => true])
+            : back()->with('status', "Label \"{$label->name}\" deleted. The emails themselves are kept.");
     }
 
     /** Set the exact labels of one conversation (checkbox menu in the thread view). */

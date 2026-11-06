@@ -36,11 +36,31 @@
                 <div class="label-pop">
                     <div class="label-pop-title">Label as:</div>
                     <div id="threadLabelList">
+                        @php $canManage = auth()->user()?->isAdmin(); @endphp
                         @foreach($allLabels as $lb)
-                            <label class="label-opt">
-                                <input type="checkbox" value="{{ $lb->id }}" {{ $thread->labels->contains('id', $lb->id) ? 'checked' : '' }}>
-                                <span class="lbl-dot" style="background: {{ $lb->color }}"></span>{{ $lb->name }}
-                            </label>
+                            <div class="label-item" data-id="{{ $lb->id }}" data-name="{{ $lb->name }}">
+                                <label class="label-opt">
+                                    <input type="checkbox" value="{{ $lb->id }}" {{ $thread->labels->contains('id', $lb->id) ? 'checked' : '' }}>
+                                    <span class="lbl-dot" style="background: {{ $lb->color }}"></span>
+                                    <span class="label-name">{{ $lb->name }}</span>
+                                </label>
+                                @if($canManage)
+                                    <button type="button" class="label-more" title="Colour / delete" aria-label="Label options">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-6 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
+                                    </button>
+                                    <div class="label-tools" hidden>
+                                        <div class="label-swatches">
+                                            @foreach(\App\Models\Label::COLORS as $c)
+                                                <button type="button" class="label-sw {{ $lb->color === $c ? 'on' : '' }}" style="--sw: {{ $c }}" data-color="{{ $c }}" title="Use this colour"></button>
+                                            @endforeach
+                                        </div>
+                                        <button type="button" class="label-del">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15 4V3H9v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5zm2 15H7V6h10v13zM9 8h2v9H9zm4 0h2v9h-2z"/></svg>
+                                            Delete label
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
                         @endforeach
                     </div>
                     <div class="label-pop-sep"></div>
@@ -119,6 +139,47 @@
     function paint(labels) {
         chips.innerHTML = labels.map(l => `<span class="lbl" style="--lc: ${esc(l.color)}">${esc(l.name)}</span>`).join('');
     }
+
+    // Admin: ⋯ → change colour or delete the label (everywhere).
+    list.addEventListener('click', async e => {
+        const item = e.target.closest('.label-item');
+        if (!item) return;
+        const tools = item.querySelector('.label-tools');
+
+        if (e.target.closest('.label-more')) {
+            e.preventDefault();
+            list.querySelectorAll('.label-tools').forEach(t => { if (t !== tools) t.hidden = true; });
+            tools.hidden = !tools.hidden;
+            return;
+        }
+
+        const sw = e.target.closest('.label-sw');
+        if (sw) {
+            const res = await fetch("{{ url('/labels') }}/" + item.dataset.id, {
+                method: 'POST', headers: HEAD, body: JSON.stringify({ name: item.dataset.name, color: sw.dataset.color })
+            });
+            if (!res.ok) { alert('Could not change the colour.'); return; }
+            item.querySelector('.lbl-dot').style.background = sw.dataset.color;
+            item.querySelectorAll('.label-sw').forEach(b => b.classList.toggle('on', b === sw));
+            chips.querySelectorAll('.lbl').forEach(c => {
+                if (c.textContent === item.dataset.name) c.style.setProperty('--lc', sw.dataset.color);
+            });
+            labelsChanged = true;
+            return;
+        }
+
+        if (e.target.closest('.label-del')) {
+            if (!confirm(`Delete the label “${item.dataset.name}”?\nIt will be removed from all conversations. The emails stay.`)) return;
+            const res = await fetch("{{ url('/labels') }}/" + item.dataset.id + '/delete', { method: 'POST', headers: HEAD });
+            if (!res.ok) { alert('Could not delete the label.'); return; }
+            location.reload(); // refresh sidebar counts and chips
+        }
+    });
+    let labelsChanged = false;
+    // Sidebar shows label colours too — refresh it once the menu closes.
+    document.getElementById('threadLabelMenu').addEventListener('toggle', e => {
+        if (!e.target.open && labelsChanged) location.reload();
+    });
 
     // Tick/untick = save immediately, like Gmail.
     list.addEventListener('change', async () => {

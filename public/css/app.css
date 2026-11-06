@@ -1032,3 +1032,23 @@ body.get-app { background: var(--bg); }
     .ga-qr { display: none; }
     .ga-hero h1 { font-size: 22px; }
 }
+
+/* Label menu: per-label colour / delete (admin) */
+.label-item { display: flex; flex-wrap: wrap; align-items: center; }
+.label-item > .label-opt { flex: 1; min-width: 0; }
+.label-item .label-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.label-more {
+    flex: 0 0 auto; width: 32px; height: 32px; margin-right: 6px; border: 0; border-radius: 50%;
+    background: transparent; color: #5f6368; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+.label-more:hover { background: #e8eaed; color: var(--text); }
+.label-tools { flex: 0 0 100%; padding: 6px 14px 10px 40px; background: #f8f9fa; }
+.label-tools[hidden] { display: none; }
+.label-swatches { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 8px; }
+.label-sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; background: var(--sw); cursor: pointer; box-shadow: inset 0 0 0 2px #fff; padding: 0; }
+.label-sw.on { border-color: var(--text); }
+.label-del {
+    display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; cursor: pointer;
+    color: var(--red); font: inherit; font-size: 13px; font-weight: 600; padding: 4px 0;
+}
+.label-del:hover { text-decoration: underline; }
