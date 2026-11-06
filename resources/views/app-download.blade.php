@@ -54,6 +54,11 @@
                 <li>Tap the <b>🔔 bell</b> and <b>Allow</b> notifications to get new-email alerts.</li>
             </ol>
         @else
+            <button type="button" class="btn ga-dl" data-install="android">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                Install MailDesk
+            </button>
+            <p class="ga-note" id="gaManual">If no install window appears, follow these steps:</p>
             <ol class="ga-steps">
                 <li>Open <b>{{ url('/') }}</b> in <b>Chrome</b> on your phone.</li>
                 <li>Tap the <b>⋮</b> menu → <b>Install app</b> (or “Add to Home screen”).</li>
@@ -67,6 +72,10 @@
     {{-- iPhone --}}
     <div class="ga-panel" id="ga-iphone" hidden>
         <h2>iPhone</h2>
+        <button type="button" class="btn ga-dl" data-install="iphone">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Install on iPhone
+        </button>
         <p class="ga-note">Apple only allows App Store downloads, so on iPhone MailDesk installs from Safari. It works the same as an app: own icon, full screen, notifications.</p>
         <ol class="ga-steps">
             <li>Open <b>{{ url('/') }}</b> in <b>Safari</b> (not Chrome).</li>
@@ -100,5 +109,6 @@
     else if (isIOS) pick('iphone'); else if (isAndroid) pick('android');
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js?v={{ @filemtime(public_path('sw.js')) ?: 1 }}', { scope: '/' }).catch(() => {});
 </script>
+@include('partials.app-prompt')
 </body>
 </html>

@@ -75,8 +75,7 @@
     if (installItem) installItem.addEventListener('click', async e => {
         e.preventDefault();
         if (deferred) {
-            deferred.prompt();
-            await deferred.userChoice;
+            try { deferred.prompt(); await deferred.userChoice; } catch (err) {}
             deferred = null;
             installItem.hidden = true;
         } else if (isIOS) {

@@ -1075,3 +1075,13 @@ body.get-app { background: var(--bg); }
 .app-prompt-go { display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; font-size: 15px; text-decoration: none; }
 .app-prompt-skip { display: block; width: 100%; margin-top: 8px; padding: 12px; background: none; border: 0; color: #0b57d0; font-size: 15px; font-weight: 600; cursor: pointer; }
 @keyframes apUp { from { transform: translateY(100%); } to { transform: none; } }
+.ios-steps ol { list-style: none; padding: 0; margin: 4px 0 12px; text-align: left; }
+.ios-steps li { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 10px 4px; border-bottom: 1px solid #eef0f2; font-size: 15px; }
+.ios-steps li small { color: #5f6368; font-size: 12px; }
+.ios-n { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #0b57d0; color: #fff; font-size: 13px; font-weight: 700; margin-right: 4px; }
+.ios-safari { background: #fef7e0; color: #7a5901; border-radius: 10px; padding: 8px 12px; font-size: 13px !important; }
+.ios-arrow { font-size: 26px; color: #0b57d0; animation: iosBob 1s ease-in-out infinite; margin: -4px 0 4px; }
+@keyframes iosBob { 50% { transform: translateY(6px); } }
+.app-prompt-sheet { max-height: 92vh; overflow-y: auto; }
+.ios-steps h2 { margin-bottom: 2px; }
+.ios-steps img { width: 44px; height: 44px; }

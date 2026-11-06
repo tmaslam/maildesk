@@ -55,18 +55,14 @@
             </button>
         </div>
         <button class="btn">Sign in</button>
-        @php
-            $apkFile = public_path('download/MailDesk.apk');
-            $androidUrl = is_file($apkFile) ? url('/download/MailDesk.apk') . '?v=' . filemtime($apkFile) : route('get-app', ['os' => 'android']);
-        @endphp
         <div class="login-apps">
             <span>Get the mobile app</span>
             <div class="login-app-btns">
-                <a class="login-app" href="{{ $androidUrl }}" @if(is_file($apkFile)) download="MailDesk.apk" @endif>
+                <a class="login-app" href="{{ route('get-app', ['os' => 'android']) }}" data-install="android">
                     <svg width="34" height="34" viewBox="0 0 24 24" fill="#3ddc84"><path d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22a11.4 11.4 0 0 0-9.84 0L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48A10.78 10.78 0 0 0 1 18h22a10.78 10.78 0 0 0-5.4-8.52zM7 15.25A1.25 1.25 0 1 1 8.25 14 1.25 1.25 0 0 1 7 15.25zm10 0A1.25 1.25 0 1 1 18.25 14 1.25 1.25 0 0 1 17 15.25z"/></svg>
                     <span><small>DOWNLOAD FOR</small><b>Android</b></span>
                 </a>
-                <a class="login-app" href="{{ route('get-app', ['os' => 'iphone']) }}">
+                <a class="login-app" href="{{ route('get-app', ['os' => 'iphone']) }}" data-install="iphone">
                     <svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46a4.22 4.22 0 0 0-3.32-1.8c-1.41-.15-2.76.83-3.48.83-.73 0-1.83-.81-3-.79a4.45 4.45 0 0 0-3.76 2.28c-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74s1.78.74 2.99.72c1.24-.02 2.02-1.12 2.77-2.23a9.6 9.6 0 0 0 1.26-2.58 3.98 3.98 0 0 1-2.4-3.69zM14.1 5.86A3.98 3.98 0 0 0 15.04 3a4.06 4.06 0 0 0-2.63 1.36 3.8 3.8 0 0 0-.96 2.76 3.36 3.36 0 0 0 2.65-1.26z"/></svg>
                     <span><small>INSTALL ON</small><b>iPhone</b></span>
                 </a>
