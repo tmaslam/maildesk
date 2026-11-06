@@ -226,6 +226,11 @@
             </a>
         @endif
 
+        <div class="side-sep"></div>
+        <a class="side-item {{ request()->routeIs('get-app') ? 'active' : '' }}" href="{{ route('get-app') }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#5f6368"><path d="M17 1H7a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 18H7V5h10v14zm-5 3a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+            Mobile app
+        </a>
         <div class="side-sep app-only"></div>
         <a class="side-item app-only" id="installItem" href="#" hidden>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#5f6368"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
@@ -333,7 +338,7 @@
         if ('Notification' in window && Notification.permission === 'granted') {
             const opts = {
                 body: count > 1 ? `${count} new emails received` : 'A new email just arrived',
-                icon: '/icons/icon-192.png', badge: '/icons/badge-96.png', tag: 'maildesk-new',
+                icon: '/app-icons/icon-192.png', badge: '/app-icons/badge-96.png', tag: 'maildesk-new',
                 data: { url: "{{ route('inbox', ['unread' => 1]) }}" }
             };
             // Phones only allow notifications through the service worker.

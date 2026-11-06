@@ -13,6 +13,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Public pages required by Google's OAuth consent screen.
 Route::view('/privacy', 'privacy')->name('privacy');
+// "Get the mobile app" page (Android APK / iPhone steps) — public so it can be shared.
+Route::view('/app', 'app-download')->name('get-app');
 
 // Google redirects here after consent; auth happens via the state-linked mailbox.
 Route::get('/oauth/callback', [MailboxController::class, 'callback'])->name('oauth.callback');

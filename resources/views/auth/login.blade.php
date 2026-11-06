@@ -55,6 +55,10 @@
             </button>
         </div>
         <button class="btn">Sign in</button>
+        <a class="login-getapp" href="{{ route('get-app') }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 1H7a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 18H7V5h10v14zm-5 3a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+            Get the mobile app (Android / iPhone)
+        </a>
     </form>
 </div>
 <script>

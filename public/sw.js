@@ -1,8 +1,8 @@
 /* MailDesk service worker: installable app, offline screen, push notifications.
  * Pages are always fetched live (they contain private mail); only static
  * assets are cached. */
-const CACHE = 'maildesk-static-v1';
-const STATIC = ['/offline.html', '/icons/icon-192.png', '/icons/badge-96.png', '/favicon.svg'];
+const CACHE = 'maildesk-static-v2';
+const STATIC = ['/offline.html', '/app-icons/icon-192.png', '/app-icons/badge-96.png', '/favicon.svg'];
 
 self.addEventListener('install', (e) => {
     e.waitUntil(caches.open(CACHE).then((c) => c.addAll(STATIC)).then(() => self.skipWaiting()));
@@ -27,7 +27,7 @@ self.addEventListener('fetch', (e) => {
     }
 
     // Same-origin static files (css, icons): serve cached copy, refresh in background.
-    if (url.origin === location.origin && /^\/(css|icons)\/|\/favicon\.svg$/.test(url.pathname)) {
+    if (url.origin === location.origin && /^\/(css|app-icons)\/|\/favicon\.svg$/.test(url.pathname)) {
         e.respondWith(caches.open(CACHE).then(async (c) => {
             const hit = await c.match(req);
             const live = fetch(req).then((res) => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
@@ -47,8 +47,8 @@ self.addEventListener('push', (e) => {
         } catch (err) {}
         await self.registration.showNotification('MailDesk — new email', {
             body: unread > 0 ? `${unread} unread email${unread > 1 ? 's' : ''} waiting` : 'A new customer email arrived',
-            icon: '/icons/icon-192.png',
-            badge: '/icons/badge-96.png',
+            icon: '/app-icons/icon-192.png',
+            badge: '/app-icons/badge-96.png',
             tag: 'maildesk-new',
             renotify: true,
             data: { url: '/?unread=1' },
