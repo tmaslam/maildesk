@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>@yield('title', 'MailDesk')</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    @include('partials.pwa-head')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ @filemtime(public_path('css/app.css')) ?: 1 }}">
 </head>
 <body>
 <div class="topbar">
+    <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#444746"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
     <a class="logo" href="{{ route('inbox') }}">
         <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
             <defs>
@@ -149,8 +153,9 @@
     </div>
 </div>
 
+<div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
 <div class="shell">
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
         @php $totalUnread = isset($mailboxes) ? $mailboxes->sum('unread_count') : 0; @endphp
         <a class="side-item {{ request()->routeIs('inbox') && !request('mailbox') && !request('unread') && !request('folder') ? 'active' : '' }}"
            href="{{ route('inbox') }}">
@@ -198,6 +203,19 @@
             </a>
         @endif
 
+        <div class="side-sep app-only"></div>
+        <a class="side-item app-only" id="installItem" href="#" hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#5f6368"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            Install MailDesk app
+        </a>
+        <form class="app-only" method="post" action="{{ route('logout') }}">
+            @csrf
+            <button class="side-item side-btn" type="submit">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#5f6368"><path d="M10.09 15.59 11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
+                Sign out
+            </button>
+        </form>
+
         <div class="side-bottom">
             <div class="user-card">
                 @if(auth()->user()?->isAdmin())
@@ -243,12 +261,15 @@
     paintBell();
 
     bell.addEventListener('click', async () => {
-        alertsOn = !alertsOn;
+        // First tap on a phone: ask for notification permission instead of muting.
+        const needsPermission = 'Notification' in window && Notification.permission === 'default';
+        alertsOn = needsPermission ? true : !alertsOn;
         try { localStorage.setItem('md_alerts', alertsOn ? 'on' : 'off'); } catch (e) {}
-        if (alertsOn && 'Notification' in window && Notification.permission === 'default') {
+        if (alertsOn && needsPermission) {
             try { await Notification.requestPermission(); } catch (e) {}
         }
         paintBell();
+        if (window.mdPush) window.mdPush.sync(alertsOn); // phone push on/off
     });
 
     function paintBell() {
@@ -277,19 +298,30 @@
         badge.textContent = n > 9 ? '9+' : n;
         badge.hidden = n <= 0;
         document.title = n > 0 ? `(${n}) ${baseTitle}` : baseTitle;
+        // Unread count on the home-screen app icon (Android/desktop/iOS 16.4+).
+        if (navigator.setAppBadge) {
+            try { n > 0 ? navigator.setAppBadge(n) : navigator.clearAppBadge(); } catch (e) {}
+        }
     }
 
     function notifyNew(count) {
         if (!alertsOn) return;
         chime();
         if ('Notification' in window && Notification.permission === 'granted') {
-            try {
-                const n = new Notification('MailDesk', {
-                    body: count > 1 ? `${count} new emails received` : 'A new email just arrived',
-                    icon: "{{ asset('favicon.svg') }}", tag: 'maildesk-new'
-                });
-                n.onclick = () => { window.focus(); location.href = "{{ route('inbox') }}"; };
-            } catch (e) {}
+            const opts = {
+                body: count > 1 ? `${count} new emails received` : 'A new email just arrived',
+                icon: '/icons/icon-192.png', badge: '/icons/badge-96.png', tag: 'maildesk-new',
+                data: { url: "{{ route('inbox', ['unread' => 1]) }}" }
+            };
+            // Phones only allow notifications through the service worker.
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.ready.then(r => r.showNotification('MailDesk', opts)).catch(() => {});
+            } else {
+                try {
+                    const n = new Notification('MailDesk', opts);
+                    n.onclick = () => { window.focus(); location.href = opts.data.url; };
+                } catch (e) {}
+            }
         }
     }
 
@@ -313,6 +345,7 @@
     setInterval(poll, 15000);
 })();
 </script>
+@include('partials.pwa-script')
 @yield('scripts')
 </body>
 </html>

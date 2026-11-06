@@ -47,6 +47,7 @@ class MailboxSyncer
         }
 
         $imported = 0;
+        $newIncoming = 0;
         $failures = 0;
         // Spam is synced too: customer mail wrongly flagged by Gmail still
         // reaches the portal inbox (marked with a Spam badge).
@@ -69,7 +70,9 @@ class MailboxSyncer
                 // One bad message (broken encoding, concurrent sync race) must not
                 // wedge the whole mailbox: log it and keep importing the rest.
                 try {
-                    $this->importMessage($mb, GmailClient::getMessage($mb, $gmailId));
+                    if ($this->importMessage($mb, GmailClient::getMessage($mb, $gmailId)) === 'in') {
+                        $newIncoming++;
+                    }
                     $imported++;
                 } catch (\Illuminate\Database\UniqueConstraintViolationException) {
                     // Another sync (second open tab) imported it first — fine.
@@ -84,10 +87,20 @@ class MailboxSyncer
             $mb->forceFill(['last_synced_at' => now()])->save();
         }
 
+        // Phone/desktop push for genuinely new customer mail (not history pulls).
+        if (!$fullHistory && $newIncoming > 0) {
+            try {
+                WebPush::notifyAll();
+            } catch (\Throwable $e) {
+                Log::warning('Web push failed: ' . $e->getMessage());
+            }
+        }
+
         return $imported;
     }
 
-    private function importMessage(Mailbox $mb, array $msg): void
+    /** @return string 'in' or 'out' — the direction of the imported message */
+    private function importMessage(Mailbox $mb, array $msg): string
     {
         [$fromName, $fromEmail] = GmailClient::parseAddress(GmailClient::header($msg, 'From'));
         $direction = $fromEmail === strtolower((string) $mb->email) ? 'out' : 'in';
@@ -141,6 +154,8 @@ class MailboxSyncer
             $att['filename'] = self::cleanUtf8($att['filename']);
             $record->attachments()->create($att + ['gmail_message_id' => $msg['id']]);
         }
+
+        return $direction;
     }
 
     /** Strip byte sequences MySQL's utf8mb4 would reject. */

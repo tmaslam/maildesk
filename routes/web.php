@@ -27,6 +27,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/thread/{thread}/reply', [InboxController::class, 'reply'])->name('thread.reply');
     Route::post('/sync', [InboxController::class, 'sync'])->name('sync');
     Route::get('/ping', [InboxController::class, 'ping'])->name('ping');
+    Route::post('/push/subscribe', [\App\Http\Controllers\PushController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [\App\Http\Controllers\PushController::class, 'unsubscribe'])->name('push.unsubscribe');
     Route::get('/attachment/{attachment}', [AttachmentController::class, 'download'])->name('attachment');
 
     Route::middleware('admin')->group(function () {

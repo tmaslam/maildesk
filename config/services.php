@@ -35,6 +35,14 @@ return [
         ],
     ],
 
+    // Web Push (VAPID) keys for phone/desktop notifications. Generated once;
+    // the private key (base64 PEM) lives only in .env.
+    'webpush' => [
+        'public_key'  => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+        'subject'     => env('VAPID_SUBJECT', 'mailto:1dollardigitizing@gmail.com'),
+    ],
+
     'google' => [
         'client_id'     => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
