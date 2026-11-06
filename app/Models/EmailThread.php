@@ -34,6 +34,11 @@ class EmailThread extends Model
             ->ofMany(['sent_at' => 'max'], fn ($q) => $q->where('direction', 'out'));
     }
 
+    public function labels(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Label::class, 'email_thread_label', 'thread_id', 'label_id')->orderBy('name');
+    }
+
     public function reads(): HasMany
     {
         return $this->hasMany(ThreadRead::class, 'thread_id');

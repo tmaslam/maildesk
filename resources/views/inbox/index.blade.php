@@ -4,7 +4,8 @@
 
 @section('content')
     @php
-        $mbParam = request('mailbox') ? ['mailbox' => request('mailbox')] : [];
+        $mbParam = array_filter(['mailbox' => request('mailbox'), 'label' => request('label')]);
+        $activeLabel = request('label') ? $allLabels->firstWhere('id', (int) request('label')) : null;
         $isUnread = $folder === 'inbox' && request()->boolean('unread');
         $isRead = $folder === 'inbox' && request()->boolean('read');
         $isTotal = $folder === 'inbox' && !$isUnread && !$isRead;
@@ -13,7 +14,7 @@
 
     @if($admin)
         <form id="bulkForm" method="post" action="{{ route('threads.delete') }}"
-              onsubmit="return confirm(document.querySelectorAll('.row-chk:checked').length + ' conversation(s) ko delete karna hai? Yeh portal se hat jayengi (Gmail par mehfooz rahengi).')">
+              onsubmit="return event.submitter && event.submitter.id !== 'bulkDeleteBtn' ? true : confirm(document.querySelectorAll('.row-chk:checked').length + ' conversation(s) ko delete karna hai? Yeh portal se hat jayengi (Gmail par mehfooz rahengi).')">
             @csrf
         </form>
     @endif
@@ -26,6 +27,28 @@
             <button class="btn danger" id="bulkDeleteBtn" type="submit" form="bulkForm" disabled>
                 Delete <span id="selCount"></span>
             </button>
+            @if($allLabels->isNotEmpty())
+                <details class="label-menu bulk-label" id="bulkLabelMenu">
+                    <summary class="chip chip-ico" title="Label selected conversations"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.63 5.84A2 2 0 0 0 16 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 1.63-.84L22 12l-4.37-6.16z"/></svg> Label</summary>
+                    <div class="label-pop">
+                        <div class="label-pop-title">Add label to selected</div>
+                        @foreach($allLabels as $lb)
+                            <button class="label-opt" type="submit" form="bulkForm" name="label_id" value="{{ $lb->id }}"
+                                    formaction="{{ route('threads.label') }}">
+                                <span class="lbl-dot" style="background: {{ $lb->color }}"></span>{{ $lb->name }}
+                            </button>
+                        @endforeach
+                        @if($activeLabel)
+                            <div class="label-pop-sep"></div>
+                            <input type="hidden" name="mode" value="" form="bulkForm" id="bulkMode">
+                            <button class="label-opt" type="submit" form="bulkForm" name="label_id" value="{{ $activeLabel->id }}"
+                                    formaction="{{ route('threads.label') }}" onclick="document.getElementById('bulkMode').value='remove'">
+                                Remove &ldquo;{{ $activeLabel->name }}&rdquo; from selected
+                            </button>
+                        @endif
+                    </div>
+                </details>
+            @endif
         @endif
         <button class="chip" id="syncBtn" type="button" title="Check for new mail">&#x21bb; Refresh</button>
         <a class="stat {{ $isTotal ? 'on' : '' }}" href="{{ route('inbox', $mbParam) }}"><b>{{ $stats['total'] }}</b> Total</a>
@@ -53,6 +76,13 @@
     </div>
 
     <div id="threadList" data-latest="{{ $latest }}">
+    @if($activeLabel)
+        <div class="folder-banner label-banner" style="--lc: {{ $activeLabel->color }}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="{{ $activeLabel->color }}"><path d="M17.63 5.84A2 2 0 0 0 16 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 1.63-.84L22 12l-4.37-6.16z"/></svg>
+            Label: <b>{{ $activeLabel->name }}</b>
+            <a href="{{ route('inbox', array_filter(['mailbox' => request('mailbox')])) }}" class="banner-clear">Clear</a>
+        </div>
+    @endif
     @if($folder === 'sent')
         <div class="folder-banner">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="#7b3ff2"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -77,6 +107,7 @@
                         </span>
                     </span>
                     <span class="line">
+                        @foreach($t->labels as $lb)<span class="lbl" style="--lc: {{ $lb->color }}">{{ $lb->name }}</span>@endforeach
                         {{ \App\Support\Mask::body($t->subject) }}
                         <span class="snip"> — {{ \Illuminate\Support\Str::limit(\App\Support\Mask::body(preg_replace('/\s+/u', ' ', (string) $t->latestOut?->body_text)), 80) }}</span>
                     </span>
@@ -100,6 +131,7 @@
                     </span>
                     @if($t->spam)<span class="pill spam">Spam</span>@endif
                     <span class="line">
+                        @foreach($t->labels as $lb)<span class="lbl" style="--lc: {{ $lb->color }}">{{ $lb->name }}</span>@endforeach
                         {{ \App\Support\Mask::body($t->subject) }}
                         <span class="snip"> — {{ \Illuminate\Support\Str::limit(\App\Support\Mask::body($t->snippet), 90) }}</span>
                     </span>
@@ -164,6 +196,8 @@
         function refresh() {
             const n = boxes().filter(b => b.checked).length;
             bulkBtn.disabled = n === 0;
+            const lm = document.getElementById('bulkLabelMenu');
+            if (lm) { lm.classList.toggle('disabled', n === 0); if (n === 0) lm.open = false; }
             selCount.textContent = n ? '(' + n + ')' : '';
             if (selectAll) selectAll.checked = n > 0 && n === boxes().length;
         }

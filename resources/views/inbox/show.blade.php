@@ -24,6 +24,33 @@
 
     <div class="thread-head">
         <h1>{{ \App\Support\Mask::body($thread->subject) ?: '(no subject)' }}</h1>
+        <div class="thread-labels">
+            <span id="threadLabelChips">
+                @foreach($thread->labels as $lb)<span class="lbl" style="--lc: {{ $lb->color }}">{{ $lb->name }}</span>@endforeach
+            </span>
+            <details class="label-menu" id="threadLabelMenu">
+                <summary class="lbl-add" title="Label this conversation">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.63 5.84A2 2 0 0 0 16 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 1.63-.84L22 12l-4.37-6.16z"/></svg>
+                    {{ $thread->labels->isEmpty() ? 'Add label' : 'Labels' }}
+                </summary>
+                <div class="label-pop">
+                    <div class="label-pop-title">Label as:</div>
+                    <div id="threadLabelList">
+                        @foreach($allLabels as $lb)
+                            <label class="label-opt">
+                                <input type="checkbox" value="{{ $lb->id }}" {{ $thread->labels->contains('id', $lb->id) ? 'checked' : '' }}>
+                                <span class="lbl-dot" style="background: {{ $lb->color }}"></span>{{ $lb->name }}
+                            </label>
+                        @endforeach
+                    </div>
+                    <div class="label-pop-sep"></div>
+                    <form class="label-new" id="threadLabelNew">
+                        <input type="text" maxlength="60" placeholder="Create new label…" required>
+                        <button type="submit" class="btn">Add</button>
+                    </form>
+                </div>
+            </details>
+        </div>
     </div>
 
     @foreach($thread->messages->sortBy('sent_at') as $msg)
@@ -79,4 +106,46 @@
             </span>
         </div>
     </form>
+@endsection
+
+@section('scripts')
+<script>
+(function () {
+    const HEAD = { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' };
+    const list = document.getElementById('threadLabelList');
+    const chips = document.getElementById('threadLabelChips');
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    function paint(labels) {
+        chips.innerHTML = labels.map(l => `<span class="lbl" style="--lc: ${esc(l.color)}">${esc(l.name)}</span>`).join('');
+    }
+
+    // Tick/untick = save immediately, like Gmail.
+    list.addEventListener('change', async () => {
+        const ids = Array.from(list.querySelectorAll('input:checked')).map(i => +i.value);
+        const res = await fetch("{{ route('thread.labels', $thread) }}", { method: 'POST', headers: HEAD, body: JSON.stringify({ labels: ids }) });
+        if (res.ok) paint((await res.json()).labels);
+        else alert('Could not save labels — please try again.');
+    });
+
+    document.getElementById('threadLabelNew').addEventListener('submit', async e => {
+        e.preventDefault();
+        const input = e.target.querySelector('input');
+        const name = input.value.trim();
+        if (!name) return;
+        const res = await fetch("{{ route('labels.store') }}", {
+            method: 'POST', headers: HEAD, body: JSON.stringify({ name, thread_id: {{ $thread->id }} })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { alert(data.message || 'Could not create the label.'); return; }
+        location.reload(); // shows the new label everywhere (sidebar too)
+    });
+
+    // Close the menu when tapping elsewhere.
+    document.addEventListener('click', e => {
+        const m = document.getElementById('threadLabelMenu');
+        if (m.open && !m.contains(e.target)) m.open = false;
+    });
+})();
+</script>
 @endsection

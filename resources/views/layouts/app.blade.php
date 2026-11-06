@@ -157,6 +157,10 @@
 <div class="shell">
     <nav class="sidebar" id="sidebar">
         @php $totalUnread = isset($mailboxes) ? $mailboxes->sum('unread_count') : 0; @endphp
+        <button class="compose-btn" id="composeBtn" type="button">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            Compose
+        </button>
         <a class="side-item {{ request()->routeIs('inbox') && !request('mailbox') && !request('unread') && !request('folder') ? 'active' : '' }}"
            href="{{ route('inbox') }}">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#5f6368"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
@@ -184,6 +188,25 @@
                     @if($mb->unread_count ?? 0)<span class="count">{{ $mb->unread_count }}</span>@endif
                 </a>
             @endforeach
+        @endisset
+
+        @isset($sidebarLabels)
+            <div class="side-sep"></div>
+            <div class="side-label side-label-row">
+                Labels
+                <button type="button" class="side-add" id="newLabelBtn" title="Create new label">+</button>
+            </div>
+            @foreach($sidebarLabels as $lb)
+                <a class="side-item {{ (int) request('label') === $lb->id ? 'active' : '' }}"
+                   href="{{ route('inbox', ['label' => $lb->id]) }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="{{ $lb->color }}"><path d="M17.63 5.84A2 2 0 0 0 16 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 1.63-.84L22 12l-4.37-6.16z"/></svg>
+                    <span class="side-text">{{ $lb->name }}</span>
+                    @if($lb->unread_count)<span class="count">{{ $lb->unread_count }}</span>@endif
+                </a>
+            @endforeach
+            @if(auth()->user()?->isAdmin() && $sidebarLabels->isNotEmpty())
+                <a class="side-item side-small" href="{{ route('labels') }}">Manage labels</a>
+            @endif
         @endisset
 
         @if(auth()->user()?->isAdmin())
@@ -343,6 +366,26 @@
 
     poll();
     setInterval(poll, 15000);
+})();
+</script>
+@include('partials.compose')
+<script>
+/* Sidebar "+" — create a label (Gmail-style). */
+(function () {
+    const btn = document.getElementById('newLabelBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+        const name = (prompt('New label name:') || '').trim();
+        if (!name) return;
+        const res = await fetch("{{ route('labels.store') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ name }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { alert(data.message || 'Could not create the label.'); return; }
+        location.href = "{{ route('inbox') }}?label=" + data.label.id;
+    });
 })();
 </script>
 @include('partials.pwa-script')

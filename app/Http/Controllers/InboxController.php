@@ -20,7 +20,8 @@ class InboxController extends Controller
         $words = trim((string) $request->get('words'));
         $exclude = trim((string) $request->get('not'));
 
-        $threads = EmailThread::with('mailbox')
+        $threads = EmailThread::with(['mailbox', 'labels'])
+            ->when($request->integer('label'), fn ($q, $id) => $q->whereHas('labels', fn ($l) => $l->where('labels.id', $id)))
             ->when($folder === 'sent', fn ($q) => $q
                 ->whereHas('messages', fn ($m) => $m->where('direction', 'out'))
                 ->with('latestOut.sentBy'))
@@ -61,7 +62,8 @@ class InboxController extends Controller
 
         // Inbox stats for the current brand filter (search/unread filters aside).
         $scope = EmailThread::query()
-            ->when($request->integer('mailbox'), fn ($q, $id) => $q->where('mailbox_id', $id));
+            ->when($request->integer('mailbox'), fn ($q, $id) => $q->where('mailbox_id', $id))
+            ->when($request->integer('label'), fn ($q, $id) => $q->whereHas('labels', fn ($l) => $l->where('labels.id', $id)));
         $total = (clone $scope)->count();
         $unread = (clone $scope)->where('unread', true)->count();
         $stats = [
@@ -69,13 +71,14 @@ class InboxController extends Controller
             'unread' => $unread,
             'read'   => $total - $unread,
             'sent'   => \App\Models\EmailMessage::where('direction', 'out')
-                ->when($request->integer('mailbox'), fn ($q, $id) => $q
-                    ->whereIn('thread_id', EmailThread::where('mailbox_id', $id)->select('id')))
+                ->when($request->integer('mailbox') || $request->integer('label'), fn ($q) => $q
+                    ->whereIn('thread_id', (clone $scope)->select('id')))
                 ->count(),
         ];
 
         return view('inbox.index', [
             'mailboxes' => $this->sidebarMailboxes(),
+            'allLabels' => \App\Models\Label::orderBy('name')->get(),
             'threads'   => $threads,
             'stats'     => $stats,
             'folder'    => $folder,
@@ -105,7 +108,7 @@ class InboxController extends Controller
 
     public function show(EmailThread $thread)
     {
-        $thread->load(['mailbox', 'messages.attachments', 'messages.sentBy', 'reads.user']);
+        $thread->load(['mailbox', 'messages.attachments', 'messages.sentBy', 'reads.user', 'labels']);
         if ($thread->unread) {
             $thread->forceFill(['unread' => false])->save();
         }
@@ -114,7 +117,11 @@ class InboxController extends Controller
             ['user_id' => auth()->id()],
             ['read_at' => now()]
         );
-        return view('inbox.show', ['thread' => $thread, 'mailboxes' => $this->sidebarMailboxes()]);
+        return view('inbox.show', [
+            'thread'    => $thread,
+            'mailboxes' => $this->sidebarMailboxes(),
+            'allLabels' => \App\Models\Label::orderBy('name')->get(),
+        ]);
     }
 
     private function sidebarMailboxes()
