@@ -95,7 +95,9 @@
         document.getElementById('ga-iphone').hidden = which !== 'iphone';
     }
     document.querySelectorAll('.ga-pick').forEach(b => b.addEventListener('click', () => pick(b.dataset.pick)));
-    if (isIOS) pick('iphone'); else if (isAndroid) pick('android');
+    const want = new URLSearchParams(location.search).get('os');
+    if (want === 'android' || want === 'iphone') pick(want);
+    else if (isIOS) pick('iphone'); else if (isAndroid) pick('android');
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js?v={{ @filemtime(public_path('sw.js')) ?: 1 }}', { scope: '/' }).catch(() => {});
 </script>
 </body>

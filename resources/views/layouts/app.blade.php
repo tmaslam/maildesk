@@ -394,6 +394,7 @@
 })();
 </script>
 @include('partials.pwa-script')
+@include('partials.app-prompt')
 @yield('scripts')
 </body>
 </html>
