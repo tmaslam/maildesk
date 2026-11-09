@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ @filemtime(public_path('css/app.css')) ?: 1 }}">
 </head>
 <body>
+@include('partials.preloader')
 <div class="login-wrap">
     <form class="login-card" method="post" action="{{ route('login') }}">
         @csrf

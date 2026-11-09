@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ @filemtime(public_path('css/app.css')) ?: 1 }}">
 </head>
 <body class="get-app">
+@include('partials.preloader')
 <div class="ga-wrap">
     <a class="ga-back" href="{{ auth()->check() ? route('inbox') : route('login') }}">&larr; {{ auth()->check() ? 'Back to inbox' : 'Sign in' }}</a>
 
