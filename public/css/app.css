@@ -1086,3 +1086,26 @@ body.get-app { background: var(--bg); }
 .ios-steps h2 { margin-bottom: 2px; }
 .ios-steps img { width: 44px; height: 44px; }
 .ios-steps li svg { vertical-align: middle; margin: 0 2px; }
+
+/* ---------- Small phones: nothing may push the page wider than the screen ---------- */
+html, body { max-width: 100%; overflow-x: hidden; }
+@media (max-width: 900px) {
+    .topbar > * { flex-shrink: 0; }
+    .topbar .search { flex: 1 1 auto; min-width: 0; }
+    .search input { width: 100%; min-width: 0; }
+    .topbar .who { flex: 0 0 auto; }
+}
+@media (max-width: 400px) {
+    .topbar { gap: 4px; padding-left: 4px; padding-right: 4px; }
+    .logo svg { width: 26px; height: 26px; }
+    .search { padding-left: 10px; }
+    .login-app-btns { grid-template-columns: 1fr; }
+    .login-card { padding-left: 18px; padding-right: 18px; }
+}
+@media (max-width: 900px) {
+    body.on-thread .compose-fab { display: none; }   /* reply box is right there */
+}
+@media (max-width: 400px) {
+    .compose-fab { width: 56px; padding: 0; justify-content: center; border-radius: 18px; }
+    .compose-fab span { display: none; }
+}

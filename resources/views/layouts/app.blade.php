@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ @filemtime(public_path('css/app.css')) ?: 1 }}">
 </head>
-<body>
+<body class="{{ request()->routeIs('thread') ? 'on-thread' : '' }}">
 <div class="topbar">
     <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="#444746"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
