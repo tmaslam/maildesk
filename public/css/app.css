@@ -433,9 +433,9 @@ button { font-family: inherit; }
 .row-wrap { display: flex; align-items: stretch; }
 .row-wrap > .row { flex: 1; min-width: 0; }
 .row-chk {
-    width: 17px;
-    height: 17px;
-    margin: 0 0 0 16px;
+    width: 14px;
+    height: 14px;
+    margin: 0 0 0 14px;
     align-self: center;
     flex: 0 0 auto;
     cursor: pointer;
@@ -450,7 +450,7 @@ button { font-family: inherit; }
     cursor: pointer;
     padding-left: 4px;
 }
-.selall input { width: 16px; height: 16px; accent-color: var(--blue); cursor: pointer; }
+.selall input { width: 14px; height: 14px; accent-color: var(--blue); cursor: pointer; }
 
 .empty { padding: 72px 24px; text-align: center; color: var(--text-2); }
 .empty h3 { color: var(--text); margin: 12px 0 4px; }
@@ -956,7 +956,7 @@ body.no-scroll { overflow: hidden; }
     .row .pill.spam { position: absolute; right: 14px; bottom: 12px; font-size: 9.5px; padding: 1px 7px; }
     .row .pill.spam + .line { padding-right: 46px; }
     .row .byline-chip { display: none; }
-    .row-chk { margin-left: 10px; width: 20px; height: 20px; }
+    .row-chk { margin-left: 8px; width: 15px; height: 15px; }
     .folder-banner { padding: 10px 14px; }
 
     /* Conversation */
