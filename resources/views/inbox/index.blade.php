@@ -50,7 +50,8 @@
                 </details>
             @endif
         @endif
-        <button class="chip" id="syncBtn" type="button" title="Check for new mail">&#x21bb; Refresh</button>
+        <button class="chip" id="syncBtn" type="button" title="Check for new mail">&#x21bb;<span class="tb-txt"> Refresh</span></button>
+        <span class="tb-break" aria-hidden="true"></span>
         <a class="stat {{ $isTotal ? 'on' : '' }}" href="{{ route('inbox', $mbParam) }}"><b>{{ $stats['total'] }}</b> Total</a>
         <a class="stat unread {{ $isUnread ? 'on' : '' }}" href="{{ route('inbox', $mbParam + ['unread' => 1]) }}"><b>{{ $stats['unread'] }}</b> Unread</a>
         <a class="stat read {{ $isRead ? 'on' : '' }}" href="{{ route('inbox', $mbParam + ['read' => 1]) }}"><b>{{ $stats['read'] }}</b> Read</a>

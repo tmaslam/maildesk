@@ -1109,3 +1109,27 @@ html, body { max-width: 100%; overflow-x: hidden; }
     .compose-fab { width: 56px; padding: 0; justify-content: center; border-radius: 18px; }
     .compose-fab span { display: none; }
 }
+
+/* Mobile inbox toolbar: actions on one line, the 4 counters on a second line — nothing off-screen */
+.tb-break { display: none; }
+@media (max-width: 900px) {
+    .toolbar { flex-wrap: wrap; overflow: visible; white-space: normal; row-gap: 8px; column-gap: 6px; padding: 8px 10px; }
+    .toolbar > .top-pager { order: 5; margin-left: auto; }
+    .toolbar > .tb-break { display: block; order: 6; flex: 0 0 100%; height: 0; }
+    .toolbar > .stat { order: 7; flex: 1 1 0; min-width: 0; text-align: center; padding: 6px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .toolbar .chip, .toolbar .btn.danger { padding: 6px 12px; }
+}
+@media (max-width: 400px) {
+    .toolbar .tb-txt { display: none; }
+    .toolbar > .stat { font-size: 11px; }
+}
+@media (max-width: 400px) {
+    .toolbar { column-gap: 4px; }
+    .toolbar .selall span { display: none; }
+    .toolbar .selall { padding: 0 4px; }
+    .toolbar .chip, .toolbar .btn.danger { padding: 6px 10px; font-size: 13px; }
+    .toolbar .top-pager .chev { width: 28px; }
+}
+@media (max-width: 900px) {
+    body:has(details.label-menu[open]) .compose-fab { display: none; } /* don't cover the label sheet */
+}
