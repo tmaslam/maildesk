@@ -33,6 +33,19 @@
         <button type="button" class="btn app-prompt-go" id="iosStepsOk">Got it</button>
     </div>
 </div>
+{{-- Android: shown while MailDesk.apk downloads. --}}
+<div class="app-prompt" id="apkSteps" hidden>
+    <div class="app-prompt-sheet ios-steps" role="dialog" aria-labelledby="apkStepsTitle">
+        <img src="/app-icons/icon-192.png" width="56" height="56" alt="">
+        <h2 id="apkStepsTitle">MailDesk is downloading…</h2>
+        <ol>
+            <li><span class="ios-n">1</span> When the download finishes, tap <b>Open</b> (or open <b>MailDesk.apk</b> from Downloads).</li>
+            <li><span class="ios-n">2</span> If Android asks, allow <b>Install unknown apps</b> for Chrome, then go back.</li>
+            <li><span class="ios-n">3</span> Tap <b>Install</b>, then <b>Open</b>, and sign in.</li>
+        </ol>
+        <button type="button" class="btn app-prompt-go" id="apkStepsOk">Got it</button>
+    </div>
+</div>
 <script>
 (function () {
     const ua = navigator.userAgent;
@@ -48,6 +61,9 @@
     window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
     window.addEventListener('appinstalled', () => { try { localStorage.setItem('md_in_app', '1'); } catch (e) {} });
 
+    const apkBox = document.getElementById('apkSteps');
+    document.getElementById('apkStepsOk').addEventListener('click', () => { apkBox.hidden = true; });
+    apkBox.addEventListener('click', e => { if (e.target === apkBox) apkBox.hidden = true; });
     const iosBox = document.getElementById('iosSteps');
     document.getElementById('iosStepsOk').addEventListener('click', () => { iosBox.hidden = true; });
     iosBox.addEventListener('click', e => { if (e.target === iosBox) iosBox.hidden = true; });
@@ -55,11 +71,16 @@
     window.mdInstall = async function (os) {
         if (os === 'android') {
             if (!isAndroid) { location.href = PAGE + '?os=android'; return; }   // desktop: QR + steps
-            if (installEvt) {                                                   // one tap: Install
+            if (APK) {                                                          // real Android app
+                const a = document.createElement('a'); a.href = APK; a.download = 'MailDesk.apk';
+                document.body.appendChild(a); a.click(); a.remove();
+                document.getElementById('apkSteps').hidden = false;
+                return;
+            }
+            if (installEvt) {                                                   // one tap: Chrome install
                 const evt = installEvt; installEvt = null;
                 try { evt.prompt(); await evt.userChoice; return; } catch (e) {}
             }
-            if (APK) { const a = document.createElement('a'); a.href = APK; a.download = 'MailDesk.apk'; document.body.appendChild(a); a.click(); a.remove(); return; }
             if (location.pathname === '/app') { document.getElementById('gaManual')?.scrollIntoView({ behavior: 'smooth' }); return; }
             location.href = PAGE + '?os=android';
             return;
