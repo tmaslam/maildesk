@@ -71,6 +71,25 @@
     </form>
 </div>
 <script>
+    // Avoid "419 Page Expired": no double submit, and never post a stale token.
+    (function () {
+        const form = document.querySelector('form.login-card');
+        const btn = form.querySelector('button.btn');
+        const loadedAt = Date.now();
+        const STALE = 100 * 60 * 1000; // session lifetime is 120 min
+        form.addEventListener('submit', e => {
+            if (Date.now() - loadedAt > STALE) { e.preventDefault(); location.reload(); return; }
+            if (form.dataset.sent) { e.preventDefault(); return; }
+            form.dataset.sent = '1';
+            btn.disabled = true; btn.textContent = 'Signing in…';
+        });
+        // Back button / app resumed from memory: get a fresh page (fresh token).
+        window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && Date.now() - loadedAt > STALE) location.reload();
+        });
+    })();
+
     // Show / hide password
     document.getElementById('pwEye').addEventListener('click', function () {
         const input = document.getElementById('pwInput');
